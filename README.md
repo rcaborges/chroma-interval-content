@@ -4,4 +4,6 @@ QUEIROZ, M.; BORGES, R. . Chroma Interval Content as a Key-Independent Harmonic 
 
 doi: 10.1109/MMRP.2019.00021
 
+Harmonic segmentation data is available in: http://rockcorpus.midside.com/
+
 (https://ieeexplore.ieee.org/document/8665369)
