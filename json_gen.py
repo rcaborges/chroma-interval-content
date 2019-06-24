@@ -9,6 +9,8 @@ import os
 from stat import *
 import json
 import os.path
+from collections import defaultdict
+import librosa
 
 def get_data(file_name):
     data = pd.read_csv(file_name, sep="\t" , quotechar="\"",engine='python', header=None)   
@@ -46,7 +48,6 @@ def calc_din(crm_arr):
         #nabla = nabla/np.linalg.norm(nabla)
         if not np.isnan(nabla).any():
             tmtx.append(nabla)
-        #tmtx.append(row_d + np.max(abs(np.array(row_d))))
         last_chroma = crmi
     tmtx = np.array(tmtx)
     print(tmtx.shape)
@@ -55,7 +56,7 @@ def calc_din(crm_arr):
     tmtx = tmtx.tolist()
     return tmtx
 
-def calc_sic(crm_arr):
+def calc_cic(crm_arr):
     crmip = np.zeros(12)
     tmtx = []
     for crmi in crm_arr:
@@ -73,19 +74,16 @@ def calc_sic(crm_arr):
     tmtx = np.array(tmtx)
     print(tmtx.shape)
     tmtx = tmtx[1:-1,:].T
-    #plot_matrix(tmtx)
     tmtx = tmtx.tolist()
     return tmtx
 
 def extract_librosa(file_name,tim):
-    import librosa
     y, sr = librosa.load(file_name)
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
     onset_frames = calc_onsets(tim,sr)
     print(chroma.shape)
     trans = []
     #PRIMEIRA TRANSICAO
-    #trans.append(np.sum(chroma[:,:int(onset_frames[0])],axis=1)/int(onset_frames[0]))
     for ost in range(len(onset_frames)-1):
         trans.append(np.sum(chroma[:,int(onset_frames[ost]):int(onset_frames[ost+1])],axis=1)/(int(onset_frames[ost+1])-int(onset_frames[ost])))
     #ULTIMA TRANSICAO
@@ -94,59 +92,7 @@ def extract_librosa(file_name,tim):
     print(trans.shape)
     return trans
 
-def plot_sig(tim,y,sr,chroma):
-    import matplotlib.pyplot as plt
-    song = np.zeros((chroma.shape[0],chroma.shape[1]))
-    print(song.shape)
-    print(np.ceil(song.shape[0]/512))
-    for onst in tim:
-        try:
-            ost = float(onst)
-            #song[int(sr*ost)] = 1
-            print(np.ceil(int(sr*ost)/512)) 
-            song[:,np.ceil(int(sr*ost)/512)] = 1 
-        except:
-            continue  
-    plot_matrix(song)
-
-def plot_feat(matrix):
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import seaborn as sns; sns.set()
-    import pandas as pd
-
-    #matrix = matrix[matrix[:,matrix.shape[1] -1].argsort()]
-    data = pd.DataFrame(matrix)
-    #data = data.set_index([med_vec])
-    sns.heatmap(data)
-    labels = ['0','1','2','3','4','5','6','7','8','9','10','11']
-    #labels = range(11)
-    indexes = np.arange(len(matrix))
-    #plt.yticks(indexes+0.5, labels)
-    plt.yticks(rotation=0)
-    plt.show()
-
-
-def plot_matrix(matrix):
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import seaborn as sns; sns.set()
-    import pandas as pd
-
-    #matrix = matrix[matrix[:,matrix.shape[1] -1].argsort()]
-    data = pd.DataFrame(matrix)
-    #data = data.set_index([med_vec])
-    sns.heatmap(data)
-    labels = ['6','5','4','3','2','1','0','-1','-2','-3','-4','-5']
-    #labels = ['-5','-4','-3','-2','-1','0','1','2','3','4','5','6']
-    indexes = np.arange(len(matrix))
-    plt.yticks(indexes+0.5, labels)
-    plt.yticks(rotation=0)
-    plt.show()
-
 def walktree(top, callback, file_type):
-    from collections import defaultdict
-    #country_dict = dict.fromkeys(user_prof['country'].unique(),country_songs)
     trans_dict = defaultdict(list)
     chroma_dict = {}
     genres = get_genres('genres.csv')
@@ -183,8 +129,6 @@ def walktree(top, callback, file_type):
         else:
             # Unknown file type, print a message
             print ('Skipping %s' % pathname)
-    #with open("dcf_data.json","w") as file:
-    #    file.write(json.dumps(trans_dict))
     with open("data.json","w") as file:
         file.write(json.dumps(chroma_dict))
 
@@ -198,18 +142,11 @@ def visitfile(file,file_type,dir,tim):
             print(file_id)
             trans_matrix = extract_librosa(file,list(tim))
             dcf = calc_din(trans_matrix)
-            cic = calc_sic(trans_matrix)
-            #plot_matrix(tmatx)
+            cic = calc_cic(trans_matrix)
             return cic,dcf,file_id,trans_matrix.tolist()
+
 if __name__ == '__main__':
     walktree(sys.argv[1], visitfile, 'mp3')
 
-#    tim = get_data('seg.txt')
-#    print(list(tim[0]))
-#    #trans_matrix = extract_librosa('/home/pc/workspace/dados/ismir2018/The Rolling Stone Magazines 500 Greatest Songs Of All Time/008 - The Beatles - Hey Jude.mp3',list(tim[0]))
-#    trans_matrix = extract_librosa('1510788992027.mp4',list(tim[0]))
-#    print(trans_matrix.shape)
-#    calc_din(trans_matrix)  
-#    calc_sic(trans_matrix)  
 
 
