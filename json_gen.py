@@ -24,8 +24,8 @@ def get_genres(file_name):
     data.set_index('ID')
     return data
 
-def calc_onsets(tim,sr):
-    onsets = []
+def calc_transitions(tim,sr):
+    transitions = []
     for onst in tim:
         try:
             ost = float(onst)
@@ -33,7 +33,7 @@ def calc_onsets(tim,sr):
             onsets.append(np.ceil(int(sr*ost)/512))
         except:
             continue
-    return onsets
+    return transitions
 
 def calc_din(crm_arr):
     crmip = np.zeros(12)
@@ -80,14 +80,14 @@ def calc_cic(crm_arr):
 def extract_librosa(file_name,tim):
     y, sr = librosa.load(file_name)
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
-    onset_frames = calc_onsets(tim,sr)
+    transition_frames = calc_transitions(tim,sr)
     print(chroma.shape)
     trans = []
     #PRIMEIRA TRANSICAO
-    for ost in range(len(onset_frames)-1):
-        trans.append(np.sum(chroma[:,int(onset_frames[ost]):int(onset_frames[ost+1])],axis=1)/(int(onset_frames[ost+1])-int(onset_frames[ost])))
+    for ost in range(len(transition_frames)-1):
+        trans.append(np.sum(chroma[:,int(transition_frames[ost]):int(transition_frames[ost+1])],axis=1)/(int(transition_frames[ost+1])-int(transition_frames[ost])))
     #ULTIMA TRANSICAO
-    trans.append(np.sum(chroma[:,int(onset_frames[-1]):],axis=1)/(chroma.shape[1] - int(onset_frames[-1])))
+    trans.append(np.sum(chroma[:,int(transition_frames[-1]):],axis=1)/(chroma.shape[1] - int(transition_frames[-1])))
     trans = np.array(trans)
     print(trans.shape)
     return trans
