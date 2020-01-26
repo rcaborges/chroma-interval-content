@@ -6,5 +6,5 @@ doi: 10.1109/MMRP.2019.00021
 
 (https://ieeexplore.ieee.org/document/8665369)
 
-Harmonic segmentation data is available in: http://rockcorpus.midside.com/
+Harmonic segmentation data is available at: http://rockcorpus.midside.com/
 
